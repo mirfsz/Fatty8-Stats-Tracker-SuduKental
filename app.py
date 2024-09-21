@@ -27,12 +27,10 @@ def init_db():
     db_path = os.path.join(STORAGE_DIR, 'fitness_data.db')
     conn = sqlite3.connect(db_path)
     c = conn.cursor()
-    # Drop the existing table if it exists
     c.execute('DROP TABLE IF EXISTS fitness_data')
-    # Create the table with the new schema
-    c.execute('''CREATE TABLE fitness_data
-                 (week INTEGER, name TEXT, date TEXT, entry_type TEXT, steps INTEGER, o2_level INTEGER, 
-                  pushups INTEGER, pullups INTEGER, situps INTEGER, run_time TEXT, status TEXT)''')
+    c.execute('CREATE TABLE IF NOT EXISTS fitness_data (week INTEGER, name TEXT, date TEXT, entry_type TEXT, steps INTEGER, o2_level INTEGER, pushups INTEGER, pullups INTEGER, situps INTEGER, run_time TEXT, status TEXT)')
+    c.execute('CREATE TABLE IF NOT EXISTS admin_settings (current_week INTEGER)')
+    c.execute('INSERT INTO admin_settings (current_week) VALUES (1)')  # Default week
     conn.commit()
     conn.close()
 
@@ -40,9 +38,7 @@ def insert_data(entry):
     db_path = os.path.join(STORAGE_DIR, 'fitness_data.db')
     conn = sqlite3.connect(db_path)
     c = conn.cursor()
-    c.execute('''INSERT INTO fitness_data VALUES 
-                 (:week, :name, :date, :entry_type, :steps, :o2_level, :pushups, :pullups, :situps, :run_time, :status)''',
-              entry)
+    c.execute('INSERT INTO fitness_data VALUES (:week, :name, :date, :entry_type, :steps, :o2_level, :pushups, :pullups, :situps, :run_time, :status)', entry)
     conn.commit()
     conn.close()
 
@@ -53,6 +49,18 @@ def get_data():
     conn.close()
     return df
 
+<<<<<<< HEAD
+def get_current_week():
+    db_path = os.path.join(STORAGE_DIR, 'fitness_data.db')
+    conn = sqlite3.connect(db_path)
+    c = conn.cursor()
+    c.execute('SELECT current_week FROM admin_settings')
+    week = c.fetchone()[0]
+    conn.close()
+    return week
+
+=======
+>>>>>>> origin/master
 def admin_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
@@ -63,9 +71,10 @@ def admin_required(f):
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
+    current_week = get_current_week()
     if request.method == 'POST':
         entry = {
-            'week': request.form['week'],
+            'week': current_week,
             'name': request.form['name'],
             'date': datetime.now().strftime('%Y-%m-%d'),
             'entry_type': request.form['entry_type'],
@@ -108,6 +117,21 @@ def admin_dashboard():
 
     return render_template('admin_dashboard.html', submitted_data=submitted_data, latest_week=latest_week)
 
+<<<<<<< HEAD
+@app.route('/admin_set_week', methods=['POST'])
+@admin_required
+def admin_set_week():
+    new_week = request.form['new_week']
+    db_path = os.path.join(STORAGE_DIR, 'fitness_data.db')
+    conn = sqlite3.connect(db_path)
+    c = conn.cursor()
+    c.execute('UPDATE admin_settings SET current_week = ?', (new_week,))
+    conn.commit()
+    conn.close()
+    return redirect(url_for('admin_dashboard'))
+
+=======
+>>>>>>> origin/master
 @app.route('/export')
 @admin_required
 def export_excel():
