@@ -49,7 +49,6 @@ def get_data():
     conn.close()
     return df
 
-<<<<<<< HEAD
 def get_current_week():
     db_path = os.path.join(STORAGE_DIR, 'fitness_data.db')
     conn = sqlite3.connect(db_path)
@@ -59,8 +58,6 @@ def get_current_week():
     conn.close()
     return week
 
-=======
->>>>>>> origin/master
 def admin_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
@@ -117,7 +114,6 @@ def admin_dashboard():
 
     return render_template('admin_dashboard.html', submitted_data=submitted_data, latest_week=latest_week)
 
-<<<<<<< HEAD
 @app.route('/admin_set_week', methods=['POST'])
 @admin_required
 def admin_set_week():
@@ -130,8 +126,6 @@ def admin_set_week():
     conn.close()
     return redirect(url_for('admin_dashboard'))
 
-=======
->>>>>>> origin/master
 @app.route('/export')
 @admin_required
 def export_excel():
