@@ -19,7 +19,16 @@
     <div class="container dashboard-container">
         <h1 class="mb-4">Admin Dashboard</h1>
         <h2 class="mb-4">Week {{ latest_week }} Submission Status</h2>
-        <div class="row">
+
+        <form method="POST" action="/admin_set_week">
+            <div class="mb-3">
+                <label for="new_week" class="form-label">Set Week Number</label>
+                <input type="number" class="form-control" id="new_week" name="new_week" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Set Week</button>
+        </form>
+
+        <div class="row mt-4">
             {% for member, data in submitted_data.items() %}
             <div class="col-md-6">
                 <div class="card member-card {% if not data %}not-submitted{% endif %}">
@@ -46,12 +55,3 @@
                         {% else %}
                             <p>Not submitted</p>
                         {% endif %}
-                    </div>
-                </div>
-            </div>
-            {% endfor %}
-        </div>
-        <a href="/export" class="btn btn-primary mt-4">Export to Excel</a>
-    </div>
-</body>
-</html>
