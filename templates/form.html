@@ -30,7 +30,7 @@
                 </div>
                 <div class="mb-3">
                     <label for="entry_type" class="form-label">Entry Type</label>
-                    <select class="form-select" id="entry_type" name="entry_type" onchange="toggleFields()">
+                    <select class="form-select" id="entry_type" name="entry_type">
                         <option value="steps_o2">Steps & O2</option>
                         <option value="static_workouts">Static Workouts</option>
                     </select>
@@ -45,10 +45,10 @@
                         <input type="number" class="form-control" id="o2_level" name="o2_level">
                     </div>
                 </div>
-                <div id="static_workouts_fields" style="display: none;">
+                <div id="static_workouts_fields">
                     <div class="mb-3">
                         <label for="status" class="form-label">Status</label>
-                        <select class="form-select" id="status" name="status" onchange="toggleWorkoutFields()">
+                        <select class="form-select" id="status" name="status">
                             <option value="Active">Active</option>
                             <option value="MC">MC</option>
                             <option value="LD">LD</option>
@@ -69,7 +69,7 @@
                         </div>
                         <div class="mb-3">
                             <label for="run_time" class="form-label">2.4km Run Time (MM:SS)</label>
-                            <input type="text" class="form-control" id="run_time" name="run_time" pattern="[0-5][0-9]:[0-5][0-9]" placeholder="12:40">
+                            <input type="text" class="form-control" id="run_time" name="run_time" placeholder="12:40">
                         </div>
                     </div>
                 </div>
@@ -78,31 +78,5 @@
             <a href="/admin_login" class="btn btn-secondary mt-3 w-100">Admin Login</a>
         </div>
     </div>
-    <script>
-        function toggleFields() {
-            var entryType = document.getElementById('entry_type').value;
-            var stepsO2Fields = document.getElementById('steps_o2_fields');
-            var staticWorkoutsFields = document.getElementById('static_workouts_fields');
-
-            if (entryType === 'steps_o2') {
-                stepsO2Fields.style.display = 'block';
-                staticWorkoutsFields.style.display = 'none';
-            } else {
-                stepsO2Fields.style.display = 'none';
-                staticWorkoutsFields.style.display = 'block';
-            }
-        }
-
-        function toggleWorkoutFields() {
-            var status = document.getElementById('status').value;
-            var workoutFields = document.getElementById('workout_fields');
-
-            if (status === 'Active') {
-                workoutFields.style.display = 'block';
-            } else {
-                workoutFields.style.display = 'none';
-            }
-        }
-    </script>
 </body>
 </html>
