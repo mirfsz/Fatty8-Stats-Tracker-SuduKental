@@ -8,7 +8,6 @@ from functools import wraps
 app = Flask(__name__)
 app.secret_key = os.getenv('SECRET_KEY', 'your_default_secret_key')
 
-# Define the directory for storing the database file
 STORAGE_DIR = os.getenv('STORAGE_DIR', '/tmp')  # Temp directory, will be recreated on every deploy
 ADMIN_PASSWORD = os.getenv('ADMIN_PASSWORD', 'mathetinkacak')
 
@@ -76,11 +75,6 @@ def admin_required(f):
             return redirect(url_for('admin_login'))
         return f(*args, **kwargs)
     return decorated_function
-
-# Initialize the database before handling any requests
-@app.before_first_request
-def setup():
-    init_db()  # Initialize the database
 
 # Main route for squad members to submit fitness data
 @app.route('/', methods=['GET', 'POST'])
@@ -161,7 +155,8 @@ def export_excel(week):
     week_data.to_excel(excel_file, index=False)
     return send_file(excel_file, as_attachment=True)
 
-# Main entry point to run the app
+# Initialize the database on the first run
 if __name__ == '__main__':
+    init_db()  # Initialize the database
     port = int(os.getenv('PORT', 5000))
     app.run(host='0.0.0.0', port=port)
