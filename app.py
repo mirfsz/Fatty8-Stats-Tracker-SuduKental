@@ -22,8 +22,9 @@ SQUAD_MEMBERS = [
     "Nitin Palaniappan Arun"
 ]
 
-# Database Initialization
+# Database Initialization with Logging
 def init_db():
+    print("Initializing the database...")
     os.makedirs(STORAGE_DIR, exist_ok=True)
     db_path = os.path.join(STORAGE_DIR, 'fitness_data.db')
     conn = sqlite3.connect(db_path)
@@ -31,10 +32,12 @@ def init_db():
     # Create tables if they don't exist
     c.execute('CREATE TABLE IF NOT EXISTS fitness_data (week INTEGER, name TEXT, date TEXT, entry_type TEXT, steps INTEGER, o2_level INTEGER, pushups INTEGER, pullups INTEGER, situps INTEGER, run_time TEXT, status TEXT)')
     c.execute('CREATE TABLE IF NOT EXISTS admin_settings (current_week INTEGER)')
+    print("Tables created or already exist.")
     
     # Ensure the admin_settings table has a default week set
     c.execute('SELECT COUNT(*) FROM admin_settings')
     if c.fetchone()[0] == 0:
+        print("Inserting default week into admin_settings...")
         c.execute('INSERT INTO admin_settings (current_week) VALUES (1)')  # Default week 1
 
     conn.commit()
