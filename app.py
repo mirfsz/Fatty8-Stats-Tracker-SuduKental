@@ -6,10 +6,10 @@ import os
 from functools import wraps
 
 app = Flask(__name__)
-app.secret_key = 'your_secret_key_here'  # Change this to a random secret key
+app.secret_key = os.environ.get('SECRET_KEY', 'fallback_secret_key_for_development')
 
 STORAGE_DIR = os.getenv('STORAGE_DIR', '/tmp')
-ADMIN_PASSWORD = "mathetinkacak"
+ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD', 'mathetinkacak')  # Consider using environment variable
 
 SQUAD_MEMBERS = [
     "Muhammad Saifullah Azim Bin Yusoff", "Muhammad Syahirryzam Bin Aismaly",
@@ -22,36 +22,37 @@ SQUAD_MEMBERS = [
     "Nitin Palaniappan Arun"
 ]
 
-def init_db():
-    os.makedirs(STORAGE_DIR, exist_ok=True)
+def get_db_connection():
     db_path = os.path.join(STORAGE_DIR, 'fitness_data.db')
     conn = sqlite3.connect(db_path)
+    conn.row_factory = sqlite3.Row
+    return conn
+
+def init_db():
+    os.makedirs(STORAGE_DIR, exist_ok=True)
+    conn = get_db_connection()
     c = conn.cursor()
-    c.execute('DROP TABLE IF EXISTS fitness_data')
     c.execute('CREATE TABLE IF NOT EXISTS fitness_data (week INTEGER, name TEXT, date TEXT, entry_type TEXT, steps INTEGER, o2_level INTEGER, pushups INTEGER, pullups INTEGER, situps INTEGER, run_time TEXT, status TEXT)')
     c.execute('CREATE TABLE IF NOT EXISTS admin_settings (current_week INTEGER)')
-    c.execute('INSERT INTO admin_settings (current_week) VALUES (1)')  # Default week
+    c.execute('INSERT OR IGNORE INTO admin_settings (current_week) VALUES (1)')
     conn.commit()
     conn.close()
 
 def insert_data(entry):
-    db_path = os.path.join(STORAGE_DIR, 'fitness_data.db')
-    conn = sqlite3.connect(db_path)
+    conn = get_db_connection()
     c = conn.cursor()
     c.execute('INSERT INTO fitness_data VALUES (:week, :name, :date, :entry_type, :steps, :o2_level, :pushups, :pullups, :situps, :run_time, :status)', entry)
     conn.commit()
     conn.close()
 
 def get_data():
-    db_path = os.path.join(STORAGE_DIR, 'fitness_data.db')
-    conn = sqlite3.connect(db_path)
+    conn = get_db_connection()
     df = pd.read_sql_query("SELECT * FROM fitness_data", conn)
     conn.close()
     return df
 
 def get_current_week():
-    db_path = os.path.join(STORAGE_DIR, 'fitness_data.db')
-    conn = sqlite3.connect(db_path)
+    conn = get_db_connection()
     c = conn.cursor()
     c.execute('SELECT current_week FROM admin_settings')
     week = c.fetchone()[0]
@@ -101,8 +102,8 @@ def admin_login():
 @admin_required
 def admin_dashboard():
     df = get_data()
-    latest_week = df['week'].max()
-    latest_data = df[df['week'] == latest_week]
+    latest_week = df['week'].max() if not df.empty else get_current_week()
+    latest_data = df[df['week'] == latest_week] if not df.empty else pd.DataFrame()
 
     submitted_data = {}
     for member in SQUAD_MEMBERS:
@@ -118,8 +119,7 @@ def admin_dashboard():
 @admin_required
 def admin_set_week():
     new_week = request.form['new_week']
-    db_path = os.path.join(STORAGE_DIR, 'fitness_data.db')
-    conn = sqlite3.connect(db_path)
+    conn = get_db_connection()
     c = conn.cursor()
     c.execute('UPDATE admin_settings SET current_week = ?', (new_week,))
     conn.commit()
@@ -130,15 +130,15 @@ def admin_set_week():
 @admin_required
 def export_excel():
     df = get_data()
-    excel_file = os.path.join('/tmp', "squad_fitness_data.xlsx")
+    excel_file = os.path.join(STORAGE_DIR, "squad_fitness_data.xlsx")
     with pd.ExcelWriter(excel_file) as writer:
         for week, group in df.groupby('week'):
             group.to_excel(writer, sheet_name=f'Week {week}', index=False)
     return send_file(excel_file, as_attachment=True)
 
-# Initialize the database with the new schema
+# Initialize the database
 init_db()
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port)
+    app.run(host='0.0.0.0', port=port, debug=True)
